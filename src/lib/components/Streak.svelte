@@ -3,9 +3,13 @@
     let animationComplete = false;
 
     let broken = 0;
+    let length = 14;
+    let prevLength = 0;
 
     function breakStreak() {
         isShattered = true;
+        prevLength = length;
+        length = 0;
         broken++;
         // Reset after animation completes
         setTimeout(() => {
@@ -21,7 +25,7 @@
     <div class="card h-100 original-card" style="width: 18rem;">
         <div class="card-body">
             <h5 class="card-title">Streak Name</h5>
-            <p class="card-text">🔥 Streak text</p>
+            <p class="card-text">🔥 {length} days clean!</p>
             <button class="btn btn-danger" on:click={breakStreak}>Break Streak</button>
         </div>
         <div class="card-footer">
@@ -35,7 +39,7 @@
             <div class="card-fragment fragment-{i}" style="width: 18rem;">
                 <div class="card-body">
                     <h5 class="card-title">Streak Name</h5>
-                    <p class="card-text">🔥 Streak text</p>
+                    <p class="card-text">🔥 {prevLength} days clean!</p>
                     <button class="btn btn-danger">Break Streak</button>
                 </div>
                 <div class="card-footer">
