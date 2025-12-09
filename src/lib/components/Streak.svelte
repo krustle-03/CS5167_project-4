@@ -1,5 +1,6 @@
 <script>
     import MotivationalModal from './Motivational-modal.svelte';
+    import hatchSound from '$lib/assets/hatch.mp3'
     import shatterSound from '$lib/assets/shatter.wav'
     import { streakStore } from '$lib/stores.js';
 
@@ -31,7 +32,7 @@
     });
 
     function breakStreak() {
-        const audio = new Audio(shatterSound);
+        const audio = new Audio(hatchSound);
         audio.play().catch(e => console.log('Audio play failed:', e));
         
         isShattered = true;
@@ -47,7 +48,7 @@
             animationComplete = false;
             // Show dialog offering encouragement
             showModal = true;
-        }, 3000);
+        }, 1000);
     }
 
     function deleteStreak() {

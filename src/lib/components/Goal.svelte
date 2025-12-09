@@ -1,6 +1,8 @@
 <script>
     import { goalStore } from '$lib/stores.js'
     import MotivationalModal from './Motivational-modal.svelte';
+    import hatchSound from '$lib/assets/hatch.mp3'
+    import shatterSound from '$lib/assets/shatter.wav'
 
     let { goal } = $props();
 
@@ -39,6 +41,9 @@
     function failGoal() {
         
         if ((goal.strikes + 1) >= goal.maxStrikes){
+
+            const audio = new Audio(hatchSound);
+            audio.play().catch(e => console.log('Audio play failed:', e));
             // Play shatter animation
             isShattered = true;
             
