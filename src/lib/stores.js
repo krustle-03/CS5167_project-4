@@ -49,7 +49,8 @@ export const streakStore = {
                 id: Date.now(), // Simple ID generation
                 length: 0,
                 broken: 0,
-                createdAt: new Date()
+                createdAt: new Date(),
+                isEditing: streak.isEditing || false
             }
         ]);
     },
@@ -89,6 +90,17 @@ export const streakStore = {
                     : item
             )
         )
+    },
+
+    // Clear editing flag
+    clearEditingFlag: (id) => {
+        streaks.update(items => 
+            items.map(item => 
+                item.id === id 
+                    ? { ...item, isEditing: false }
+                    : item
+            )
+        );
     }
 };
 
@@ -100,12 +112,15 @@ export const goalStore = {
             {
                 ...goal,
                 id: Date.now(),
+                targetDays: 7,
                 daysCompleted: 0,
                 strikes: 0,
                 maxStrikes: 3,
-                completed: false,
+                completed: true, // Changed to true so update mode is available
                 broken: 0,
-                createdAt: new Date()
+                createdAt: new Date(),
+                isUpdating: true,
+                isEditing: false
             }
         ]);
     },
@@ -170,5 +185,34 @@ export const goalStore = {
                     : item
             )
         );
-    }
+    },
+
+    // Update goal by id
+    updateGoal: (id, updates) => {
+        goals.update(items => 
+            items.map(item => 
+                item.id === id 
+                    ? { 
+                        ...item, 
+                        ...updates,
+                        // Reset progress and strikes when updating
+                        daysCompleted: 0,
+                        strikes: 0,
+                        completed: false
+                    }
+                    : item
+            )
+        );
+    },
+
+    // Clear updating flag
+    clearUpdatingFlag: (id) => {
+        goals.update(items => 
+            items.map(item => 
+                item.id === id 
+                    ? { ...item, isUpdating: false }
+                    : item
+            )
+        );
+    },
 };

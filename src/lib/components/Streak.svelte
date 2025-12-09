@@ -11,6 +11,24 @@
     let isEditing = $state(false);
     let editTitle = $state('');
     let showModal = $state(false);
+    let inputElement = $state(); // Add this to bind the input element
+
+    $effect(() => {
+        if (streak.isEditing) {
+            isEditing = true;
+            editTitle = streak.title || '';
+            // Clear the isEditing flag from the store
+            streakStore.clearEditingFlag(streak.id);
+        }
+    });
+
+    // Add this effect to focus the input when isEditing becomes true
+    $effect(() => {
+        if (isEditing && inputElement) {
+            inputElement.focus();
+            inputElement.select(); // Optional: select all text for easy replacement
+        }
+    });
 
     function breakStreak() {
         const audio = new Audio(shatterSound);
@@ -70,6 +88,7 @@
                 {#if isEditing}
                     <!-- uses autofocus because the edit should be cancelled if focus is lost -->
                     <input 
+                        bind:this={inputElement}
                         type="text" 
                         class="form-control form-control-sm"
                         bind:value={editTitle}
@@ -84,6 +103,7 @@
                             class="btn btn-outline-secondary btn-sm"
                             onclick={startRename}
                             disabled={isShattered}
+                            aria-label="Rename Streak"
                         >
                             <i class="bi bi-pencil-square"></i>
                         </button>
@@ -91,6 +111,7 @@
                             class="btn btn-outline-danger btn-sm"
                             onclick={deleteStreak}
                             disabled={isShattered}
+                            aria-label="Remove Streak"
                         >
                             <i class="bi bi-trash"></i>
                         </button>
@@ -118,10 +139,10 @@
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <h5 class="card-title mb-0">{streak.title}</h5>
                         <div class="d-flex gap-1">
-                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <button class="btn btn-outline-secondary btn-sm" aria-label="Rename Streak" disabled>
                                 <i class="bi bi-pencil-square"></i>
                             </button>
-                            <button class="btn btn-outline-danger btn-sm" disabled>
+                            <button class="btn btn-outline-danger btn-sm" aria-label="Remove Streak" disabled>
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>

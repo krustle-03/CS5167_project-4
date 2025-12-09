@@ -1,5 +1,6 @@
 <script>
     import { goalStore } from '$lib/stores.js'
+    import MotivationalModal from './Motivational-modal.svelte';
 
     let { goal } = $props();
 
@@ -7,6 +8,12 @@
     let animationComplete = $state(false);
     let isEditing = $state(false);
     let editTitle = $state('');
+    // Add editing states for update functionality
+    let isUpdating = $state(false);
+    let editTargetDays = $state(0);
+    let editMaxStrikes = $state(0);
+    let editDescription = $state('');
+    let showModal = $state(false);
 
     // Calculate remaining days
     let daysRemaining = $derived(goal.targetDays - goal.daysCompleted);
@@ -15,20 +22,37 @@
     let isPeriodActive = $derived(!goal.completed && daysRemaining > 0);
     
     // Check if goal is at risk (2 strikes)
-    let isAtRisk = $derived(goal.strikes === 2);
+    let isAtRisk = $derived(goal.strikes === goal.maxStrikes-1);
+
+
+    $effect(() => {
+        if (goal.isUpdating) {
+            isUpdating = true;
+            editTargetDays = goal.targetDays;
+            editMaxStrikes = goal.maxStrikes;
+            editDescription = goal.description;
+            // Clear the isUpdating flag from the store
+            goalStore.clearUpdatingFlag(goal.id);
+        }
+    });
 
     function failGoal() {
-        // Play shatter animation
-        isShattered = true;
         
-        // Add strike through store
+        if ((goal.strikes + 1) >= goal.maxStrikes){
+            // Play shatter animation
+            isShattered = true;
+            
+            // Add strike through store
+            
+            // Reset animation after it completes
+            setTimeout(() => {
+                isShattered = false;
+                animationComplete = false;
+                // Show dialog offering encouragement
+                showModal = true;
+            }, 1000);
+            }
         goalStore.addStrike(goal.id);
-        
-        // Reset animation after it completes
-        setTimeout(() => {
-            isShattered = false;
-            animationComplete = false;
-        }, 1000);
     }
 
     function deleteGoal() {
@@ -55,12 +79,47 @@
         }
     }
 
-    
+    // New functions for update functionality
+    function startUpdate() {
+        isUpdating = true;
+        editTargetDays = goal.targetDays;
+        editMaxStrikes = goal.maxStrikes;
+        editDescription = goal.description;
+    }
+
+    function saveUpdate() {
+        if (editTargetDays > 0 && editMaxStrikes > 0 && editDescription.trim() !== '') {
+            goalStore.updateGoal(goal.id, {
+                targetDays: editTargetDays,
+                maxStrikes: editMaxStrikes,
+                description: editDescription.trim()
+            });
+        }
+        isUpdating = false;
+    }
+
+    function cancelUpdate() {
+        isUpdating = false;
+    }
+
+    function handleUpdateKeydown(event) {
+        if (event.key === 'Enter' && event.ctrlKey) {
+            saveUpdate();
+        } else if (event.key === 'Escape') {
+            cancelUpdate();
+        }
+    }
 </script>
+
+
+<!-- Only create modal when needed -->
+{#if showModal}
+    <MotivationalModal bind:isOpen={showModal} />
+{/if}
 
 <div class="card-container">
     <!-- Original card -->
-    <div class="card h-100 original-card" class:border-warning={isAtRisk}>
+    <div class="card h-100 original-card" class:border-warning={isAtRisk} class:border-success={goal.completed}>
         <div class="card-body">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 {#if isEditing}
@@ -79,7 +138,7 @@
                         <button 
                             class="btn btn-outline-secondary btn-sm"
                             onclick={startRename}
-                            disabled={isShattered}
+                            disabled={isShattered || isUpdating}
                             aria-label="Rename Goal"
                         >
                             <i class="bi bi-pencil-square"></i>
@@ -87,7 +146,7 @@
                         <button 
                             class="btn btn-outline-danger btn-sm"
                             onclick={deleteGoal}
-                            disabled={isShattered}
+                            disabled={isShattered || isUpdating}
                             aria-label="Remove Goal"
                         >
                             <i class="bi bi-trash"></i>
@@ -96,7 +155,48 @@
                 {/if}
             </div>
 
-            <p class="card-text">{goal.description}</p>
+            {#if isUpdating}
+                <!-- Update form -->
+                <div class="mb-3">
+                    <div class="mb-2">
+                        <label class="form-label small">Description:</label>
+                        <textarea 
+                            class="form-control form-control-sm"
+                            bind:value={editDescription}
+                            onkeydown={handleUpdateKeydown}
+                            rows="2"
+                        ></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label small">Target Days:</label>
+                            <input 
+                                type="number" 
+                                class="form-control form-control-sm"
+                                bind:value={editTargetDays}
+                                min="1"
+                                onkeydown={handleUpdateKeydown}
+                            />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">Max Strikes:</label>
+                            <input 
+                                type="number" 
+                                class="form-control form-control-sm"
+                                bind:value={editMaxStrikes}
+                                min="1"
+                                max="5"
+                                onkeydown={handleUpdateKeydown}
+                            />
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Press Ctrl+Enter to save, Escape to cancel</small>
+                    </div>
+                </div>
+            {:else}
+                <p class="card-text">{goal.description}</p>
+            {/if}
             
             <!-- Goal Progress Display -->
             <div class="mb-3">
@@ -135,24 +235,41 @@
             <!-- Action Buttons -->
             <div class="row d-flex">
                 <div class="col">
-                    <button 
-                        class="btn btn-danger w-100" 
-                        onclick={failGoal} 
-                        disabled={isShattered || goal.completed}
-                    >
-                        Strike
-                    </button>
+                    {#if goal.completed}
+                        {#if isUpdating}
+                            <div class="d-flex gap-1">
+                                <button 
+                                    class="btn btn-success flex-grow-1"
+                                    onclick={saveUpdate}
+                                >
+                                    Save
+                                </button>
+                                <button 
+                                    class="btn btn-secondary"
+                                    onclick={cancelUpdate}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        {:else}
+                            <button 
+                                class="btn btn-success w-100"
+                                onclick={startUpdate}
+                                disabled={isShattered}
+                            >
+                                Update
+                            </button>
+                        {/if}
+                    {:else}
+                        <button 
+                            class="btn btn-danger w-100" 
+                            onclick={failGoal} 
+                            disabled={isShattered || goal.completed}
+                        >
+                            Strike
+                        </button>
+                    {/if}
                 </div>
-                
-                <div class="col">
-                    <button 
-                        class="btn btn-success w-100" 
-                        disabled={!goal.completed}
-                    >
-                        Update
-                    </button>
-                </div>
-                
             </div>
         </div>
         

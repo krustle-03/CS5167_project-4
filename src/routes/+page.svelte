@@ -2,7 +2,7 @@
     import Streak from "$lib/components/Streak.svelte";
     import Goal from "$lib/components/Goal.svelte";
     import NewCard from "$lib/components/New-card.svelte";
-    import { streaks, goals, streakStore } from "$lib/stores.js";
+    import { streaks, goals, streakStore, goalStore } from "$lib/stores.js";
 
     function incrementStreaks() {
         $streaks.forEach(streak => {
@@ -10,7 +10,13 @@
             console.log("Incremented streak, \"", streak.title, "\"")
         });
     }
-
+    
+    function incrementGoals() {
+        $goals.forEach(goal => {
+            goalStore.completeDay(goal.id)
+            console.log("Incremented goal, \"", goal.title, "\"")
+        });
+    }
 </script>
 
 <div class="container">
@@ -21,6 +27,11 @@
         <div class="col-auto">
             <button class="btn btn-secondary" onclick={incrementStreaks}>
                 <i class="bi bi-plus-circle"></i> Increment All Streaks
+            </button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-secondary" onclick={incrementGoals}>
+                <i class="bi bi-plus-circle"></i> Increment All Goals
             </button>
         </div>
     </div>

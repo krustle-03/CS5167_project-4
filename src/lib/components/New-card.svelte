@@ -6,19 +6,21 @@
     const cardTypes = ['streak', 'goal'];
     
     function createNew() {
-        console.log('Creating new:', cardTypes[cardType], 'cardType:', cardType); // Debug log
+        console.log('Creating new:', cardTypes[cardType], 'cardType:', cardType);
         
         if (cardType === 0) {
-            // Create new streak
+            // Create new streak in editing mode
             streakStore.add({
                 title: `New Streak`,
+                isEditing: true
             });
             console.log('New streak created')
         } else if (cardType === 1) {
-            // Create new goal
+            // Create new goal in updating mode
             goalStore.add({
                 title: `New Goal`,
-                description: 'New goal description'
+                description: 'New goal description',
+                isUpdating: true
             });
             console.log('New goal created')
         } else {
@@ -36,6 +38,7 @@
                     class="btn btn-primary d-flex align-items-center justify-content-center" 
                     style="width: 80px; height: 80px;"
                     onclick={createNew}
+                    aria-label="Create New Card"
                 >
                     <i class="bi bi-plus-circle" style="font-size: 3rem;"></i>
                 </button>
