@@ -8,13 +8,6 @@ const initialStreaks = [
         length: 15,
         broken: 2,
         createdAt: new Date('2024-11-20')
-    },
-    {
-        id: 2,
-        title: "Exercise Daily",
-        length: 8,
-        broken: 0,
-        createdAt: new Date('2024-11-25')
     }
 ];
 

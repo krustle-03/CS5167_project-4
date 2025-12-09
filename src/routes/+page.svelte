@@ -2,6 +2,7 @@
     import Streak from "$lib/components/Streak.svelte";
     import Goal from "$lib/components/Goal.svelte";
     import NewCard from "$lib/components/New-card.svelte";
+    import HelpResources from "$lib/components/HelpResources.svelte";
     import { streaks, goals, streakStore, goalStore } from "$lib/stores.js";
 
     function incrementStreaks() {
@@ -79,3 +80,5 @@
         
     </div>
 </div>
+
+<HelpResources/>
