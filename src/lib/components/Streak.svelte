@@ -1,4 +1,5 @@
 <script>
+    import MotivationalModal from './Motivational-modal.svelte';
     import shatterSound from '$lib/assets/shatter.wav'
     import { streakStore } from '$lib/stores.js';
 
@@ -9,6 +10,7 @@
     let prevLength = $state(0);
     let isEditing = $state(false);
     let editTitle = $state('');
+    let showModal = $state(false);
 
     function breakStreak() {
         const audio = new Audio(shatterSound);
@@ -24,9 +26,9 @@
         setTimeout(() => {
             isShattered = false;
             animationComplete = false;
+            // Show dialog offering encouragement
+            showModal = true;
         }, 3000);
-
-        // Show dialog offering encouragement
     }
 
     function deleteStreak() {
@@ -52,9 +54,12 @@
             isEditing = false;
         }
     }
-
 </script>
 
+<!-- Only create modal when needed -->
+{#if showModal}
+    <MotivationalModal bind:isOpen={showModal} />
+{/if}
 
 <div class="container" style="position: relative;">
     <!-- Original card (always visible) -->
