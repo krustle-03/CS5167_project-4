@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -41,8 +41,14 @@ jobs:
         run: |
           echo "Contents of build directory:"
           ls -la build/ || echo "Build directory not found"
-          echo "Current directory contents:"
+          echo "Root directory contents:"
           ls -la
+          echo "Checking for common build outputs:"
+          ls -la dist/ || echo "No dist directory"
+          ls -la .svelte-kit/ || echo "No .svelte-kit directory"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
