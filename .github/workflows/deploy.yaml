@@ -33,8 +33,16 @@ jobs:
       - name: Build
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'
+          NODE_ENV: 'production'
         run: |
           npm run build
+          
+      - name: List build output
+        run: |
+          echo "Contents of build directory:"
+          ls -la build/ || echo "Build directory not found"
+          echo "Current directory contents:"
+          ls -la
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
