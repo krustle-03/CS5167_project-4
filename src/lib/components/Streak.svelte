@@ -1,35 +1,51 @@
 <script>
-    let isShattered = false;
-    let animationComplete = false;
+    import shatterSound from '$lib/assets/shatter.wav'
+    import { streakStore } from '$lib/stores.js';
 
-    let broken = 0;
-    let length = 14;
-    let prevLength = 0;
+    let { streak } = $props();
+
+    let isShattered = $state(false);
+    let animationComplete = $state(false);
+    let prevLength = $state(0);
 
     function breakStreak() {
+        const audio = new Audio(shatterSound);
+        audio.play().catch(e => console.log('Audio play failed:', e));
+        
         isShattered = true;
-        prevLength = length;
-        length = 0;
-        broken++;
+        prevLength = streak.length;
+        
+        // Update the store
+        streakStore.break(streak.id);
+        
         // Reset after animation completes
         setTimeout(() => {
             isShattered = false;
             animationComplete = false;
-        }, 1000);
+        }, 3000);
+
+        // Show dialog offering encouragement
+
     }
 </script>
 
 
-<div class="streak-container">
+<div class="container" style="position: relative;">
     <!-- Original card (always visible) -->
     <div class="card h-100 original-card" style="width: 18rem;">
         <div class="card-body">
-            <h5 class="card-title">Streak Name</h5>
-            <p class="card-text">🔥 {length} days clean!</p>
-            <button class="btn btn-danger" on:click={breakStreak}>Break Streak</button>
+            <h5 class="card-title">{streak.title}</h5>
+            <p class="card-text">🔥 {streak.length} days clean!</p>
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <button class="btn btn-danger" onclick={breakStreak} disabled={isShattered}>Break</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="card-footer">
-            <small class="text-muted">broken {broken} times</small>
+            <small class="text-muted">broken {streak.broken} times</small>
         </div>
     </div>
 
@@ -38,12 +54,12 @@
         {#each Array(12) as _, i}
             <div class="card-fragment fragment-{i}" style="width: 18rem;">
                 <div class="card-body">
-                    <h5 class="card-title">Streak Name</h5>
+                    <h5 class="card-title">{streak.title}</h5>
                     <p class="card-text">🔥 {prevLength} days clean!</p>
-                    <button class="btn btn-danger">Break Streak</button>
+                    <button class="btn btn-danger" disabled>Break</button>
                 </div>
                 <div class="card-footer">
-                    <small class="text-muted">broken {broken-1} times</small>
+                    <small class="text-muted">broken {streak.broken-1} times</small>
                 </div>
             </div>
         {/each}
