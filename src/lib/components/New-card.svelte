@@ -11,18 +11,18 @@
         if (cardType === 0) {
             // Create new streak
             streakStore.add({
-                title: `untitled streak aaaaaaaaaaaaaaaaaa`,
+                title: `New Streak`,
             });
-            console.log('streak created')
+            console.log('New streak created')
         } else if (cardType === 1) {
             // Create new goal
             goalStore.add({
-                title: `untitled goal aaaaaaaaaaaaaaaaaa`,
+                title: `New Goal`,
                 description: 'New goal description'
             });
-            console.log('goal created')
+            console.log('New goal created')
         } else {
-            console.log('unsuccessful - invalid cardType:', cardType)
+            console.log('Creation unsuccessful - invalid cardType:', cardType)
         }
     }
 </script>

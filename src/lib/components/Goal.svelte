@@ -1,35 +1,93 @@
 <script>
-    let isShattered = false;
-    let animationComplete = false;
+    import { goalStore } from '$lib/stores.js'
 
-    let broken = 0;
-    let length = 0;
-    let prevLength = 0;
+    let { goal } = $props();
 
-    function breakStreak() {
+    let isShattered = $state(false);
+    let animationComplete = $state(false);
+    let prevLength = $state(0);
+    let isEditing = $state(false);
+    let editTitle = $state('');
+
+    function failGoal() {
         isShattered = true;
         prevLength = length;
         length = 0;
-        broken++;
         // Reset after animation completes
         setTimeout(() => {
             isShattered = false;
             animationComplete = false;
         }, 1000);
     }
+
+    function deleteGoal() {
+        goalStore.remove(goal.id);
+    }
+
+    function startRename() {
+        isEditing = true;
+        editTitle = goal.title;
+    }
+
+    function saveTitle() {
+        if (editTitle.trim() !== '') {
+            goalStore.rename(goal.id, editTitle.trim());
+        }
+        isEditing = false;
+    }
+
+    function handleKeydown(event) {
+        if (event.key === 'Enter') {
+            saveTitle();
+        } else if (event.key === 'Escape') {
+            isEditing = false;
+        }
+    }
 </script>
 
 
-<div class="streak-container">
+<div class="card-container">
     <!-- Original card (always visible) -->
     <div class="card h-100 original-card" style="width: 18rem;">
         <div class="card-body">
-            <h5 class="card-title">Goal Name</h5>
-            <p class="card-text">Goal text 1</p>
-            <button class="btn btn-danger" on:click={breakStreak} disabled={isShattered}>Fail Goal</button>
+
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                {#if isEditing}
+                    <!-- uses autofocus because the edit should be cancelled if focus is lost -->
+                    <input 
+                        type="text" 
+                        class="form-control form-control-sm"
+                        bind:value={editTitle}
+                        onblur={saveTitle}
+                        onkeydown={handleKeydown}
+                        autofocus
+                    />
+                {:else}
+                    <h5 class="card-title mb-0">{goal.title}</h5>
+                    <div class="d-flex gap-1">
+                        <button 
+                            class="btn btn-outline-secondary btn-sm"
+                            onclick={startRename}
+                            disabled={isShattered}
+                        >
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button 
+                            class="btn btn-outline-danger btn-sm"
+                            onclick={deleteGoal}
+                            disabled={isShattered}
+                        >
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                {/if}
+            </div>
+
+            <p class="card-text">{goal.description}</p>
+            <button class="btn btn-danger" onclick={failGoal} disabled={isShattered}>Fail Goal</button>
         </div>
         <div class="card-footer">
-            <small class="text-muted">broken {broken} times</small>
+            <small class="text-muted">broken  times</small>
         </div>
     </div>
 
@@ -38,12 +96,22 @@
         {#each Array(12) as _, i}
             <div class="card-fragment fragment-{i}" style="width: 18rem;">
                 <div class="card-body">
-                    <h5 class="card-title">Goal Name</h5>
-                    <p class="card-text">Goal text 1</p>
-                    <button class="btn btn-danger">fail goal</button>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h5 class="card-title mb-0">{goal.title}</h5>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" disabled>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="card-text">{goal.description}</p>
+                    <button class="btn btn-danger" disabled>Fail Goal</button>
                 </div>
                 <div class="card-footer">
-                    <small class="text-muted">broken {broken-1} times</small>
+                    <small class="text-muted">broken  times</small>
                 </div>
             </div>
         {/each}
@@ -52,7 +120,7 @@
 
 
 <style>
-.streak-container {
+.card-container {
     position: relative;
     width: 18rem;
     height: 100%;

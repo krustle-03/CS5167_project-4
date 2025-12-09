@@ -18,12 +18,12 @@
     <div class="row justify-content-center align-items-stretch mb-4">
         
         {#each $streaks as streak (streak.id)}
-            <div class="col-auto d-flex">
+            <div class="col-auto d-flex mb-4">
                 <Streak {streak} />
             </div>
         {/each}
         
-        <div class="col-auto">
+        <div class="col-auto mb-4">
             <NewCard cardType={0} />
         </div>
         
@@ -38,12 +38,12 @@
     <div class="row justify-content-center">
         
         {#each $goals as goal (goal.id)}
-            <div class="col-auto">
+            <div class="col-auto d-flex mb-4">
                 <Goal {goal} />
             </div>
         {/each}
         
-        <div class="col-auto">
+        <div class="col-auto mb-4">
             <NewCard cardType={1} />
         </div>
         

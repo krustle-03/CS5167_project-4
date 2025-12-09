@@ -62,6 +62,7 @@
         <div class="card-body d-flex flex-column">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 {#if isEditing}
+                    <!-- uses autofocus because the edit should be cancelled if focus is lost -->
                     <input 
                         type="text" 
                         class="form-control form-control-sm"

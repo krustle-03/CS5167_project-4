@@ -107,5 +107,16 @@ export const goalStore = {
     // Remove a goal
     remove: (id) => {
         goals.update(items => items.filter(item => item.id !== id));
+    },
+
+    // Rename a streak
+    rename: (id, newTitle) => {
+        goals.update(items => 
+            items.map(item => 
+                item.id === id 
+                    ? { ...item, title: newTitle }
+                    : item
+            )
+        );
     }
 };
