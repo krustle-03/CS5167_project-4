@@ -7,6 +7,8 @@
     let isShattered = $state(false);
     let animationComplete = $state(false);
     let prevLength = $state(0);
+    let isEditing = $state(false);
+    let editTitle = $state('');
 
     function breakStreak() {
         const audio = new Audio(shatterSound);
@@ -25,23 +27,75 @@
         }, 3000);
 
         // Show dialog offering encouragement
-
     }
+
+    function deleteStreak() {
+        streakStore.remove(streak.id);
+    }
+
+    function startRename() {
+        isEditing = true;
+        editTitle = streak.title;
+    }
+
+    function saveTitle() {
+        if (editTitle.trim() !== '') {
+            streakStore.rename(streak.id, editTitle.trim());
+        }
+        isEditing = false;
+    }
+
+    function handleKeydown(event) {
+        if (event.key === 'Enter') {
+            saveTitle();
+        } else if (event.key === 'Escape') {
+            isEditing = false;
+        }
+    }
+
 </script>
 
 
 <div class="container" style="position: relative;">
     <!-- Original card (always visible) -->
-    <div class="card h-100 original-card" style="width: 18rem;">
-        <div class="card-body">
-            <h5 class="card-title">{streak.title}</h5>
-            <p class="card-text">🔥 {streak.length} days clean!</p>
-            <div class="container">
-                <div class="row">
-                    <div class="col">
-                        <button class="btn btn-danger" onclick={breakStreak} disabled={isShattered}>Break</button>
+    <div class="card h-100 original-card" style="width: 20rem;">
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                {#if isEditing}
+                    <input 
+                        type="text" 
+                        class="form-control form-control-sm"
+                        bind:value={editTitle}
+                        onblur={saveTitle}
+                        onkeydown={handleKeydown}
+                        autofocus
+                    />
+                {:else}
+                    <h5 class="card-title mb-0">{streak.title}</h5>
+                    <div class="d-flex gap-1">
+                        <button 
+                            class="btn btn-outline-secondary btn-sm"
+                            onclick={startRename}
+                            disabled={isShattered}
+                        >
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button 
+                            class="btn btn-outline-danger btn-sm"
+                            onclick={deleteStreak}
+                            disabled={isShattered}
+                        >
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </div>
-                </div>
+                {/if}
+            </div>
+            
+            <p class="card-text">🔥 {streak.length} days clean!</p>
+            
+            <!-- This div will grow to push button to bottom -->
+            <div class="mt-auto">
+                <button class="btn btn-danger" onclick={breakStreak} disabled={isShattered}>Break</button>
             </div>
         </div>
         <div class="card-footer">
@@ -53,10 +107,23 @@
     {#if isShattered}
         {#each Array(12) as _, i}
             <div class="card-fragment fragment-{i}" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">{streak.title}</h5>
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h5 class="card-title mb-0">{streak.title}</h5>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" disabled>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
                     <p class="card-text">🔥 {prevLength} days clean!</p>
-                    <button class="btn btn-danger" disabled>Break</button>
+                    
+                    <div class="mt-auto">
+                        <button class="btn btn-danger" disabled>Break</button>
+                    </div>
                 </div>
                 <div class="card-footer">
                     <small class="text-muted">broken {streak.broken-1} times</small>

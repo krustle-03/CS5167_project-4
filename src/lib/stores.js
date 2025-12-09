@@ -64,6 +64,17 @@ export const streakStore = {
     // Remove a streak
     remove: (id) => {
         streaks.update(items => items.filter(item => item.id !== id));
+    },
+    
+    // Rename a streak
+    rename: (id, newTitle) => {
+        streaks.update(items => 
+            items.map(item => 
+                item.id === id 
+                    ? { ...item, title: newTitle }
+                    : item
+            )
+        );
     }
 };
 
