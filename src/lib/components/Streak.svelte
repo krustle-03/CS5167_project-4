@@ -21,7 +21,8 @@
         
         // Update the store
         streakStore.break(streak.id);
-        
+        console.log("Broke streak, \"", streak.title, "\"")
+
         // Reset after animation completes
         setTimeout(() => {
             isShattered = false;

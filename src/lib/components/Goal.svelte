@@ -5,15 +5,26 @@
 
     let isShattered = $state(false);
     let animationComplete = $state(false);
-    let prevLength = $state(0);
     let isEditing = $state(false);
     let editTitle = $state('');
 
+    // Calculate remaining days
+    let daysRemaining = $derived(goal.targetDays - goal.daysCompleted);
+    
+    // Check if goal period is active
+    let isPeriodActive = $derived(!goal.completed && daysRemaining > 0);
+    
+    // Check if goal is at risk (2 strikes)
+    let isAtRisk = $derived(goal.strikes === 2);
+
     function failGoal() {
+        // Play shatter animation
         isShattered = true;
-        prevLength = length;
-        length = 0;
-        // Reset after animation completes
+        
+        // Add strike through store
+        goalStore.addStrike(goal.id);
+        
+        // Reset animation after it completes
         setTimeout(() => {
             isShattered = false;
             animationComplete = false;
@@ -43,14 +54,14 @@
             isEditing = false;
         }
     }
+
+    
 </script>
 
-
 <div class="card-container">
-    <!-- Original card (always visible) -->
-    <div class="card h-100 original-card" style="width: 18rem;">
+    <!-- Original card -->
+    <div class="card h-100 original-card" class:border-warning={isAtRisk}>
         <div class="card-body">
-
             <div class="d-flex align-items-center justify-content-between mb-2">
                 {#if isEditing}
                     <!-- uses autofocus because the edit should be cancelled if focus is lost -->
@@ -69,6 +80,7 @@
                             class="btn btn-outline-secondary btn-sm"
                             onclick={startRename}
                             disabled={isShattered}
+                            aria-label="Rename Goal"
                         >
                             <i class="bi bi-pencil-square"></i>
                         </button>
@@ -76,6 +88,7 @@
                             class="btn btn-outline-danger btn-sm"
                             onclick={deleteGoal}
                             disabled={isShattered}
+                            aria-label="Remove Goal"
                         >
                             <i class="bi bi-trash"></i>
                         </button>
@@ -84,57 +97,124 @@
             </div>
 
             <p class="card-text">{goal.description}</p>
-            <button class="btn btn-danger" onclick={failGoal} disabled={isShattered}>Fail Goal</button>
+            
+            <!-- Goal Progress Display -->
+            <div class="mb-3">
+                <!-- Progress bar with number on right -->
+                <div class="mb-2">
+                    <small class="text-muted">Progress:</small>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <div class="progress flex-grow-1" style="height: 8px;">
+                            <div 
+                                class="progress-bar {goal.completed ? 'bg-success' : 'bg-primary'}" 
+                                style="width: {(goal.daysCompleted / goal.targetDays) * 100}%"
+                            ></div>
+                        </div>
+                        <div class="fw-bold {daysRemaining <= 2 && daysRemaining > 0 ? 'text-warning' : goal.completed ? 'text-success' : 'text-primary'}" style="min-width: 50px;">
+                            {goal.daysCompleted}/{goal.targetDays}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Strike indicators with number on right -->
+                <div>
+                    <small class="text-muted">Strikes:</small>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <div class="d-flex gap-1">
+                            {#each Array(goal.maxStrikes) as _, i}
+                                <div class="strike-indicator {i < goal.strikes ? 'strike-filled' : 'strike-empty'}"></div>
+                            {/each}
+                        </div>
+                        <div class="fw-bold {isAtRisk ? 'text-danger' : 'text-secondary'}" style="min-width: 30px;">
+                            {goal.strikes}/{goal.maxStrikes}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row d-flex">
+                <div class="col">
+                    <button 
+                        class="btn btn-danger w-100" 
+                        onclick={failGoal} 
+                        disabled={isShattered || goal.completed}
+                    >
+                        Strike
+                    </button>
+                </div>
+                
+                <div class="col">
+                    <button 
+                        class="btn btn-success w-100" 
+                        disabled={!goal.completed}
+                    >
+                        Update
+                    </button>
+                </div>
+                
+            </div>
         </div>
+        
         <div class="card-footer">
-            <small class="text-muted">broken  times</small>
+            <small class="text-muted">
+                Failed {goal.broken} time{goal.broken !== 1 ? 's' : ''}
+                {#if isPeriodActive}
+                    • {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining
+                {/if}
+            </small>
         </div>
     </div>
 
-    <!-- Shattered fragments (only visible during animation) -->
+    <!-- Shattered fragments -->
     {#if isShattered}
         {#each Array(12) as _, i}
-            <div class="card-fragment fragment-{i}" style="width: 18rem;">
+            <div class="card-fragment fragment-{i}">
+                <!-- Fragment content same as original -->
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <h5 class="card-title mb-0">{goal.title}</h5>
                         <div class="d-flex gap-1">
-                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <button class="btn btn-outline-secondary btn-sm" aria-label="Rename Goal" disabled>
                                 <i class="bi bi-pencil-square"></i>
                             </button>
-                            <button class="btn btn-outline-danger btn-sm" disabled>
+                            <button class="btn btn-outline-danger btn-sm" aria-label="Remove Goal" disabled>
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
                     </div>
                     <p class="card-text">{goal.description}</p>
-                    <button class="btn btn-danger" disabled>Fail Goal</button>
+                    <button class="btn btn-danger" disabled>Add Strike</button>
                 </div>
                 <div class="card-footer">
-                    <small class="text-muted">broken  times</small>
+                    <small class="text-muted">Failed {goal.broken} times</small>
                 </div>
             </div>
         {/each}
     {/if}
 </div>
 
-
 <style>
 .card-container {
     position: relative;
-    width: 18rem;
+    /* Remove fixed width, let it be flexible */
+    min-width: 250px; /* Set a minimum width */
+    max-width: 400px; /* Optional: set a maximum width */
     height: 100%;
+    display: inline-block; /* Allow natural width sizing */
 }
 
 .original-card {
     position: relative;
     z-index: 1;
+    width: 100%; /* Take full width of container */
 }
 
 .card-fragment {
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%; /* Match the container width */
     background: white;
     border: 1px solid rgba(0,0,0,.125);
     border-radius: 0.25rem;
@@ -198,5 +278,31 @@
 .hover-effect:hover {
     border-color: blue;
     transition:cubic-bezier(0.175, 0.885, 0.32, 1.275) 1s
+}
+
+.strike-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #dc3545;
+}
+
+.strike-filled {
+    background-color: #dc3545;
+}
+
+.strike-empty {
+    background-color: transparent;
+}
+
+/* Border colors for different states */
+.border-warning {
+    border-color: #ffc107 !important;
+    border-width: 2px !important;
+}
+
+.border-success {
+    border-color: #198754 !important;
+    border-width: 2px !important;
 }
 </style>

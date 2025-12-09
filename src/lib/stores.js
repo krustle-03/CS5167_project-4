@@ -22,11 +22,15 @@ const initialStreaks = [
 const initialGoals = [
     {
         id: 1,
-        title: "Read 50 Books",
-        description: "Read 50 books this year",
+        title: "Limit Drinking",
+        description: "<2 drinks a day for 7 days",
+        targetDays: 7,
+        daysCompleted: 6,
+        strikes: 1,
+        maxStrikes: 3,
         completed: false,
         broken: 1,
-        createdAt: new Date('2024-01-01')
+        createdAt: new Date('2024-12-01')
     }
 ];
 
@@ -75,6 +79,16 @@ export const streakStore = {
                     : item
             )
         );
+    },
+
+    increment: (id) => {
+        streaks.update(items => 
+            items.map(item =>
+                item.id === id
+                    ? {...item, length: item.length + 1 }
+                    : item
+            )
+        )
     }
 };
 
@@ -86,6 +100,9 @@ export const goalStore = {
             {
                 ...goal,
                 id: Date.now(),
+                daysCompleted: 0,
+                strikes: 0,
+                maxStrikes: 3,
                 completed: false,
                 broken: 0,
                 createdAt: new Date()
@@ -93,14 +110,49 @@ export const goalStore = {
         ]);
     },
     
-    // Fail a goal
-    fail: (id) => {
-        goals.update(items =>
-            items.map(item =>
-                item.id === id
-                    ? { ...item, broken: item.broken + 1 }
-                    : item
-            )
+    // Add a strike to a goal
+    addStrike: (id) => {
+        goals.update(items => 
+            items.map(item => {
+                if (item.id === id) {
+                    const newStrikes = item.strikes + 1;
+                    
+                    // If max strikes reached, reset everything
+                    if (newStrikes >= item.maxStrikes) {
+                        return {
+                            ...item,
+                            strikes: 0,
+                            daysCompleted: 0,
+                            broken: item.broken + 1,
+                            completed: false
+                        };
+                    }
+                    
+                    // Otherwise just add the strike
+                    return {
+                        ...item,
+                        strikes: newStrikes
+                    };
+                }
+                return item;
+            })
+        );
+    },
+    
+    // Complete a day
+    completeDay: (id) => {
+        goals.update(items => 
+            items.map(item => {
+                if (item.id === id && item.daysCompleted < item.targetDays) {
+                    const newDaysCompleted = item.daysCompleted + 1;
+                    return {
+                        ...item,
+                        daysCompleted: newDaysCompleted,
+                        completed: newDaysCompleted >= item.targetDays
+                    };
+                }
+                return item;
+            })
         );
     },
     
@@ -108,8 +160,8 @@ export const goalStore = {
     remove: (id) => {
         goals.update(items => items.filter(item => item.id !== id));
     },
-
-    // Rename a streak
+    
+    // Rename a goal
     rename: (id, newTitle) => {
         goals.update(items => 
             items.map(item => 
