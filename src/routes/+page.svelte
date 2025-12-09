@@ -23,7 +23,7 @@
 <div class="container">
     <div class="row align-items-center mb-4">
         <div class="col-auto">
-            <h1>Welcome to Test Page</h1>
+            <h1>The Quit Manager</h1>
         </div>
         <div class="col-auto">
             <button class="btn btn-secondary" onclick={incrementStreaks}>
